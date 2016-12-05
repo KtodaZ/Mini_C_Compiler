@@ -1,7 +1,7 @@
-all: Parser Scanner YourCode 
-	gcc BabyC.tab.o lex.yy.o driver.o your_code.o -o bcc
+all: Parser Scanner BabyC
+	gcc BabyC.tab.o lex.yy.o driver.o BabyC.o -o bcc
 
-YourCode: your_code.o driver.o 
+BabyC: BabyC.o driver.o
 
 Scanner: BabyC.lex 
 	flex BabyC.lex

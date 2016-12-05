@@ -2,20 +2,4 @@ main( )
 {
     int x1;
     int x2;
-    int abc;
-    if(x1 > 978)
-        x2 = abc;
-
-    while(x2 == x1) {
-        int a = 67845;
-        if(a == 984) {
-            int b = 4;
-        } else {
-            a = a * 2;
-        }
-    }
-
-    for(x1 = 0; x1 < x2; x++) {
-        abc = abc + x1;
-    }
 }

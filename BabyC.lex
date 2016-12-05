@@ -1,8 +1,14 @@
+/**
+ * Flex scanner for a Baby C language
+ * CSC 151 Assignment 5
+ * Author: Kyle Szombathy
+ */
+
 %{
 #include <stdio.h>
 #include <string.h>
 #include "BabyC.tab.h"
-#include "your_code.h"
+#include "BabyC.h"
 
 void yyerror (const char *s) 
 {
@@ -47,8 +53,8 @@ void yyerror (const char *s)
 "else" return ELSE;
 "while" return WHILE;
 
-[a-z|A-Z]([a-z]|[A-Z]|[0-9])*  yylval.string = strdup(yytext); return IDENT; //Identifier
-0|[1-9][0-9]*	yylval.num = atoi(yytext); return NUM; //Number
+[a-z|A-Z]([a-z]|[A-Z]|[0-9])*  yylval.string = strdup(yytext);  return IDENT; //Identifier
+0|[1-9][0-9]*	               yylval.num = atoi(yytext);       return NUM;   //Number
 
 [ \t\n]+		//Whitespace is ignored
 .           printf( "ERROR on Line %d: Unrecognized token \n", yylineno ); exit(1); //No match. Fatal error.
