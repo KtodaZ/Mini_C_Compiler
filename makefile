@@ -14,3 +14,11 @@ Parser: BabyC.y
 %.o: %.c 
 	gcc -c $<
 
+clean:
+	-rm -f *.o lex.yy.c *.tab.* bcc *.iloc
+
+redo:
+	-rm -f *.o lex.yy.c *.tab.* bcc *.iloc
+	clear
+	make
+	./bcc test.bc

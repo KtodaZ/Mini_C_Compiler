@@ -1,5 +1,21 @@
 main( )
 {
-    int x1;
-    int x2;
+    int a;
+    int b;
+    int c;
+    int x;
+    int y;
+    int z;
+
+    x = y + z;
+    while(a == b) {
+        if(c > b) {
+            x = y * z;
+        }
+        else {
+            x = y / z;
+        }
+        y = z + a;
+    }
+    z = x - y;
 }

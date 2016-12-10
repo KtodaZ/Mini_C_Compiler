@@ -1,26 +1,23 @@
 /**
  * Bison Parser for a Baby C language
- * CSC 151 Assignment 5
  * Author: Kyle Szombathy
  */
 
 %{
-/**C DECLARATIONS SECTIONS*/
     #include <stdio.h>
-    #include "BabyC.h"
+    #include "BabyC_code.h"
 
-// The parser needs to call the scanner to get the next token 
-    extern int yylex();
+// The parser needs to call the scanner to get the next token
+extern int yylex();
 
-// The error function 
-    extern int yyerror(const char *);
+// The error function
+extern int yyerror(const char *);
 
 // The ASTNode root
-    extern ASTNode* gASTRoot;
+extern ASTNode* gASTRoot;
 %}
-/**BISON DECLARATIONS SECTION*/
 
-//Put any initialization code here 
+//Put any initialization code here
 %initial-action
 {
 
@@ -40,9 +37,10 @@
 %token ELSE "else"
 %token WHILE "while"
 
-//Define the types for the grammar attributes ($$, $1, $2, ...) 
+//Define the types for the grammar attributes ($$, $1, $2, ...)
 %union
-{   ASTNode* node; // Most $$ values will be ASTNodes
+{
+    ASTNode* node; // Most $$ values will be ASTNodes
     int num; // Integer numbers
     char* string; // Strings for identifiers
 }
@@ -51,7 +49,7 @@
 %token <string> IDENT
 %token <num> NUM
 
-//Specify the type for each non-terminal in the grammar
+//Specify the type for each non-terminal in the grammar. Here are some samples:
 %type <node> Goal
 %type <node> DeclarationList
 %type <node> Declaration
@@ -65,39 +63,32 @@
 %type <node> While
 %type <node> Condition
 %type <node> Compare
-
+// Add the rest of the types for the grammar's symbols
 
 
 %%
-/**GRAMMAR RULES SECTION
- * In this section we will write the rules for each grammar and add them to the AST*/
+// Write the grammar for BabyC, and write an embedded action for each production. Here are some samples for you:
 
-// Language can start with declarations, followed by statements.
-Goal
-        : MAIN '(' ')' '{' DeclarationList StatementList '}'	{gASTRoot=$6;} // Store the AST root node in gASTRoot
+Goal: "main" '(' ')' '{' DeclarationList StatementList '}'	{gASTRoot=$6;} // Store the AST root node in gASTRoot
 ;
 
 DeclarationList
         :
-        | Declaration DeclarationList // Note that a DeclarationList may be empty
+| Declaration DeclarationList // Note that a DeclarationList may be empty
 ;
 
-Declaration
-        : INT IDENT ';' {AddDeclaration($2);}
+Declaration: "int" IDENT ';' {AddDeclaration($2);}
 ;
 
 StatementList
-        :
-        | StatementList Statement
-            {
-                $$ = $1; //? Should this create a node???
-            }
+        : {$$ = NULL; }
+| Statement StatementList	{$$ = CreateStatementListNode($1, $2);}
 ;
 
 Statement
         : Assignment      {$$ = $1;}
-        | If              {$$ = $1;}
-        | While           {$$ = $1;}
+| If              {$$ = $1;}
+| While           {$$ = $1;}
 ;
 
 Assignment
@@ -105,85 +96,45 @@ Assignment
 ;
 
 Expr
-        : Term            {$$ = $1;}
-        | Expr '+' Term   {$$ = CreateAddNode($1, $3);}
-        | Expr '-' Term   {$$ = CreateSubNode($1, $3);}
+        : Term            {$$ = $1; }
+| Expr '+' Term   {$$ = CreateAddNode($1, $3); }
+| Expr '-' Term   {$$ = CreateSubNode($1, $3); }
 ;
 
 Term
         : Factor          {$$ = $1;}
-        | Term '*' Factor {$$ = CreateMultNode($1, $3);}
-        | Term '/' Factor {$$ = CreateDivNode($1, $3);}
+| Term '*' Factor {$$ = CreateMultNode($1, $3); }
+| Term '/' Factor {$$ = CreateDivNode($1, $3); }
 ;
 
 Factor
         : IDENT 		  {$$ = CreateIdentNode($1);}
-        | NUM 		      {$$ = CreateNumNode($1);}
-        | '('Expr')'      {$$ = $2;}
+| NUM 		      {$$ = CreateNumNode($1); }
+| '('Expr')'      {$$ = $2; }
 ;
 
 If
-        : IF '(' Condition ')' '{' StatementList //{$$ = CreateIfNode($3, $6, 0);}
-        | IF '(' Condition ')' '{' StatementList '}' ELSE '{' StatementList '}' //{$$ = CreateIfNode($3, $6, $10);}
+        : IF '(' Condition ')' '{' StatementList '}' {$$ = CreateIfNode($3, $6, NULL);}
+| IF '(' Condition ')' '{' StatementList '}' ELSE '{' StatementList '}' {$$ = CreateIfNode($3, $6, $10);}
 ;
 
 While
-        : WHILE '(' Condition ')'  '{' StatementList '}' //{$$ = CreateWhileNode($3, $6);}
+        : WHILE '(' Condition ')'  '{' StatementList '}' {$$ = CreateWhileNode($3, $6);}
 ;
 
 Condition
-        : Compare AND Compare
-        | Compare OR Compare
-        | Compare
+        : Compare AND Compare   {$$ = CreateAndNode($1, $3);}
+| Compare OR Compare    {$$ = CreateOrNode($1, $3);}
+| Compare               {$$ = $1;}
 ;
 
 Compare
-        : Expr LE Expr
-        | Expr LT Expr
-        | Expr GE Expr
-        | Expr GT Expr
-        | Expr EQ Expr
-        | Expr NE Expr
+        : Expr LE Expr {$$ = CreateLENode($1,$3);}
+| Expr LT Expr {$$ = CreateLTNode($1,$3);}
+| Expr GE Expr {$$ = CreateGENode($1,$3);}
+| Expr GT Expr {$$ = CreateGTNode($1,$3);}
+| Expr EQ Expr {$$ = CreateEQNode($1,$3);}
+| Expr NE Expr {$$ = CreateNENode($1,$3);}
 ;
 
-
 %%
-
-/**ADDITIONAL C CODE (OPTIONAL)*/
-//========Functions========
-ASTNode *CreateNewASTNode(ASTNodeType type, ASTOp op, int num, char *name, ASTNode *left, ASTNode *right) {
-    ASTNode *newNode = emalloc (sizeof (ASTNode));
-    newNode->type = type;
-    newNode->op = op;
-    newNode->num = num;
-    newNode->name = name;
-    newNode->left = left;
-    newNode->right = right;
-    return newNode;
-}
-
-ASTNode *CreateNumNode(int num) {
-    return CreateNewASTNode(NUM, 0, num, 0, 0, 0);
-}
-
-ASTNode *CreateIdentNode(char *name) {
-    return CreateNewASTNode(IDENT, 0, 0, name, 0, 0);
-}
-
-ASTNode *CreateAssignNode(char *name, ASTNode *right) {
-    return CreateNewASTNode(ASSIGN, 0, 0, 0, CreateIdentNode(name), right);
-}
-
-void AddDeclaration(char *name) {
-
-}
-
-void *emalloc(unsigned size)
-{
-    void *p = malloc(size);
-    if (p == 0) {
-        fprintf(stderr, "out of memory!\n");
-        exit(1);
-    }
-    return p;
-}

@@ -1,14 +1,14 @@
 /**
  * Flex scanner for a Baby C language
- * CSC 151 Assignment 5
  * Author: Kyle Szombathy
  */
 
 %{
 #include <stdio.h>
 #include <string.h>
+#include "BabyC_code.h"
 #include "BabyC.tab.h"
-#include "BabyC.h"
+
 
 void yyerror (const char *s) 
 {
@@ -58,5 +58,3 @@ void yyerror (const char *s)
 
 [ \t\n]+		//Whitespace is ignored
 .           printf( "ERROR on Line %d: Unrecognized token \n", yylineno ); exit(1); //No match. Fatal error.
-
-
